@@ -109,9 +109,9 @@ export const MOCK_MARKETS: Market[] = Array.from({ length: 32 }).map((_, i) => {
     return {
         ...base,
         id: `m${String(i + 1).padStart(3, '0')}`,
-        volume: `$${(Math.random() * 10 + 0.5).toFixed(1)}M`,
-        change: `${Math.random() > 0.5 ? '+' : '-'}${Math.floor(Math.random() * 20)}%`,
-        isHot: Math.random() > 0.8,
+        volume: `$${((i * 37) % 100 / 10 + 0.5).toFixed(1)}M`,
+        change: `${i % 2 === 0 ? '+' : '-'}${Math.floor((i * 13) % 25)}%`,
+        isHot: (i * 7) % 5 === 0, // Deterministic Hot status
         // Rotate categories/types for filter testing
         category: ['WHALES', 'SCALPERS', 'ALGO_BOTS'][i % 3] as any,
         assetType: ['BTC_ETH', 'MEMES', 'PERPS'][i % 3] as any,

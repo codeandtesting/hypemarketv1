@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import MarketCard from "@/components/MarketCard";
 import FeaturedEvent from "@/components/FeaturedEvent";
 import FilterSidebar, { FilterState } from "@/components/FilterSidebar";
@@ -17,6 +17,18 @@ export default function Home() {
   });
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  // Lock body scroll when filters are open
+  useEffect(() => {
+    if (isFilterOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isFilterOpen]);
 
   const filteredMarkets = useMemo(() => {
     let result = [...MOCK_MARKETS];
@@ -115,7 +127,7 @@ export default function Home() {
           <FeaturedEvent />
 
           {/* Market Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-px bg-white/40 auto-rows-fr">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 p-3 auto-rows-fr">
             {filteredMarkets.map((market) => (
               <div key={market.id} className="bg-black">
                 <MarketCard market={market} />
@@ -130,105 +142,96 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Mobile Filter Drawer (Tactical Drawer) */}
+      {/* Mobile Filter Drawer (Tactical Full Screen) */}
       {isFilterOpen && (
-        <div className="fixed inset-0 z-50 md:hidden flex flex-col justify-end">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            onClick={() => setIsFilterOpen(false)}
-          />
+        <div className="fixed inset-0 z-50 md:hidden bg-black flex flex-col animate-in slide-in-from-bottom duration-300">
 
-          {/* Drawer */}
-          <div className="relative bg-black w-full max-h-[85vh] overflow-y-auto border-t-4 border-accent flex flex-col animate-in slide-in-from-bottom duration-300">
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-white/40 bg-black sticky top-0 z-10 border-t-4 border-accent shrink-0">
+            <span className="font-mono text-sm font-bold tracking-widest text-accent">/// TACTICAL_FILTERS</span>
+            <button
+              onClick={() => setIsFilterOpen(false)}
+              className="text-white hover:text-accent font-bold"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
 
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-white/40 bg-black sticky top-0 z-10">
-              <span className="font-mono text-sm font-bold tracking-widest text-accent">/// TACTICAL_FILTERS</span>
-              <button
-                onClick={() => setIsFilterOpen(false)}
-                className="text-white hover:text-accent font-bold"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            {/* Content (Reusing FilterSidebar logic but styled for Mobile) */}
-            <div className="p-6 space-y-8 flex-grow">
-              {/* Trader Class */}
-              <div className="space-y-3">
-                <label className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Trader Class</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {["ALL", "WHALES", "SCALPERS", "ALGO_BOTS"].map((opt) => (
-                    <button
-                      key={opt}
-                      onClick={() => setFilters(prev => ({ ...prev, traderClass: opt }))}
-                      className={cn(
-                        "h-12 border text-xs font-mono font-bold uppercase transition-all",
-                        filters.traderClass === opt
-                          ? "bg-white text-black border-white"
-                          : "border-white/20 text-gray-400"
-                      )}
-                    >
-                      {opt.replace("_", " ")}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Asset Type */}
-              <div className="space-y-3">
-                <label className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Asset Category</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {["ALL", "BTC_ETH", "MEMES", "PERPS"].map((opt) => (
-                    <button
-                      key={opt}
-                      onClick={() => setFilters(prev => ({ ...prev, assetType: opt }))}
-                      className={cn(
-                        "h-12 border text-xs font-mono font-bold uppercase transition-all",
-                        filters.assetType === opt
-                          ? "bg-white text-black border-white"
-                          : "border-white/20 text-gray-400"
-                      )}
-                    >
-                      {opt.replace("_", " ")}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Sort */}
-              <div className="space-y-3">
-                <label className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Sort By</label>
-                <div className="flex flex-col gap-2">
-                  {["VOLUME", "ENDING", "NEWEST"].map((opt) => (
-                    <button
-                      key={opt}
-                      onClick={() => setFilters(prev => ({ ...prev, sortBy: opt }))}
-                      className={cn(
-                        "h-12 border text-xs font-mono font-bold uppercase transition-all flex items-center justify-between px-4",
-                        filters.sortBy === opt
-                          ? "bg-accent text-black border-accent"
-                          : "border-white/20 text-gray-400"
-                      )}
-                    >
-                      <span>{opt}</span>
-                      {filters.sortBy === opt && <span className="text-[10px]">●</span>}
-                    </button>
-                  ))}
-                </div>
+          {/* Content (Scrollable) */}
+          <div className="flex-grow overflow-y-auto p-6 space-y-8">
+            {/* Trader Class */}
+            <div className="space-y-3">
+              <label className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Trader Class</label>
+              <div className="grid grid-cols-2 gap-2">
+                {["ALL", "WHALES", "SCALPERS", "ALGO_BOTS"].map((opt) => (
+                  <button
+                    key={opt}
+                    onClick={() => setFilters(prev => ({ ...prev, traderClass: opt }))}
+                    className={cn(
+                      "h-12 border text-xs font-mono font-bold uppercase transition-all",
+                      filters.traderClass === opt
+                        ? "bg-white text-black border-white"
+                        : "border-white/20 text-gray-400"
+                    )}
+                  >
+                    {opt.replace("_", " ")}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Footer */}
-            <div className="p-4 border-t border-white/40 bg-black sticky bottom-0">
-              <button
-                onClick={() => setIsFilterOpen(false)}
-                className="w-full h-14 bg-white text-black font-black text-lg uppercase tracking-wider hover:bg-accent transition-colors border border-white/10"
-              >
-                APPLY FILTERS &gt;&gt;
-              </button>
+            {/* Asset Type */}
+            <div className="space-y-3">
+              <label className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Asset Category</label>
+              <div className="grid grid-cols-2 gap-2">
+                {["ALL", "BTC_ETH", "MEMES", "PERPS"].map((opt) => (
+                  <button
+                    key={opt}
+                    onClick={() => setFilters(prev => ({ ...prev, assetType: opt }))}
+                    className={cn(
+                      "h-12 border text-xs font-mono font-bold uppercase transition-all",
+                      filters.assetType === opt
+                        ? "bg-white text-black border-white"
+                        : "border-white/20 text-gray-400"
+                    )}
+                  >
+                    {opt.replace("_", " ")}
+                  </button>
+                ))}
+              </div>
             </div>
+
+            {/* Sort */}
+            <div className="space-y-3">
+              <label className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Sort By</label>
+              <div className="flex flex-col gap-2">
+                {["VOLUME", "ENDING", "NEWEST"].map((opt) => (
+                  <button
+                    key={opt}
+                    onClick={() => setFilters(prev => ({ ...prev, sortBy: opt }))}
+                    className={cn(
+                      "h-12 border text-xs font-mono font-bold uppercase transition-all flex items-center justify-between px-4",
+                      filters.sortBy === opt
+                        ? "bg-accent text-black border-accent"
+                        : "border-white/20 text-gray-400"
+                    )}
+                  >
+                    <span>{opt}</span>
+                    {filters.sortBy === opt && <span className="text-[10px]">●</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="p-4 border-t border-white/40 bg-black sticky bottom-0 shrink-0">
+            <button
+              onClick={() => setIsFilterOpen(false)}
+              className="w-full h-14 bg-white text-black font-black text-lg uppercase tracking-wider hover:bg-accent transition-colors border border-white/10"
+            >
+              APPLY FILTERS &gt;&gt;
+            </button>
           </div>
         </div>
       )}

@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Market } from "@/lib/mockData";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { TrendingUp, X } from "lucide-react";
+import { TrendingUp, X, Star } from "lucide-react";
+import { useWatchlist } from "@/lib/watchlistContext";
 
 interface MarketCardProps {
     market: Market;
@@ -19,6 +20,9 @@ function mulberry32(a: number) {
 }
 
 export default function MarketCard({ market }: MarketCardProps) {
+    const { isInWatchlist, addToWatchlist, removeFromWatchlist } = useWatchlist();
+    const isWatched = isInWatchlist(market.id);
+
     // Generate unique pattern based on market ID
     const seed = parseInt(market.id.replace(/\D/g, '') || '0');
     const rand = mulberry32(seed);
@@ -30,12 +34,6 @@ export default function MarketCard({ market }: MarketCardProps) {
     // 1. Randomize Grid Density (4x4, 8x8, or 12x12)
     const gridDensity = [4, 8, 12][Math.floor(rand() * 3)];
     const cellSize = 100 / gridDensity;
-
-    // ... shapes generation ...
-    // (Keep shapes generation logic here as is, lines 31-82)
-    // To minimize context, I will just provide the new handler and updated return structure logic in the next chunk.
-    // However, I need to make sure I don't lose the shape logic if I replace the top block.
-    // I will replace the state definition and add the handler.
 
     const handleExecuteTrade = () => {
         setExecutionStep("PROCESSING");
@@ -133,13 +131,13 @@ export default function MarketCard({ market }: MarketCardProps) {
 
             <div
                 className={cn(
-                    "relative flex h-full flex-col justify-between overflow-hidden bg-black p-6 transition-all duration-200 border border-transparent",
-                    "hover:border-accent hover:bg-accent/5"
+                    "relative flex h-full flex-col justify-between overflow-hidden bg-[#09090b] p-6 transition-all duration-200 border border-white/10",
+                    "hover:border-accent hover:bg-accent/5",
+                    isWatched && "border-accent/40 bg-accent/5"
                 )}
             >
-                {/* Generative Background Pattern (remains same) */}
+                {/* Generative Background Pattern */}
                 <div className="absolute inset-0 z-0 opacity-50 pointer-events-none">
-                    {/* ... (svg content remains same) ... */}
                     <svg width="100%" height="100%" preserveAspectRatio="none">
                         <defs>
                             <pattern id={`grid-${market.id}`} width="8" height="8" patternUnits="userSpaceOnUse">
@@ -171,114 +169,22 @@ export default function MarketCard({ market }: MarketCardProps) {
                 {/* Content Wrapper (z-10 to sit above overlay) */}
                 <div className="relative z-10 flex flex-col h-full justify-between pointer-events-none w-full">
 
-                    {expandedOutcome && selectedOutcomeObj ? (
-                        // QUICK BET INTERFACE
-                        <div className="flex flex-col h-full justify-between pointer-events-auto bg-black absolute inset-0 z-20 p-6 animate-in fade-in zoom-in-95 duration-200">
-
-                            {executionStep === "IDLE" ? (
-                                <>
-                                    {/* Header */}
-                                    <div className="flex items-start justify-between mb-2">
-                                        <div className="flex flex-col">
-                                            <div className="text-[10px] text-gray-400 font-mono uppercase tracking-widest mb-1">
-                                                Placing Order
-                                            </div>
-                                            <h3 className="font-sans font-bold text-lg leading-tight text-white line-clamp-2">
-                                                {market.question}
-                                            </h3>
-                                        </div>
-                                        <button
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                setExpandedOutcome(null);
-                                            }}
-                                            className="text-gray-500 hover:text-white transition-colors"
-                                        >
-                                            <X className="w-5 h-5" />
-                                        </button>
-                                    </div>
-
-                                    {/* Controls */}
-                                    <div className="space-y-4">
-                                        {/* Amount Input Row */}
-                                        <div className="flex gap-2">
-                                            <div className="flex-1 relative">
-                                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-mono">$</div>
-                                                <input
-                                                    type="number"
-                                                    value={amount}
-                                                    onChange={(e) => setAmount(e.target.value)}
-                                                    className="w-full bg-white/5 border border-white/20 rounded-lg py-2 pl-6 pr-2 text-white font-mono font-bold focus:outline-none focus:border-accent transition-colors"
-                                                />
-                                            </div>
-                                            <button onClick={() => setAmount((prev) => (parseInt(prev || "0") + 1).toString())} className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-xs font-mono font-bold hover:bg-white/10 transition-colors">+1</button>
-                                            <button onClick={() => setAmount((prev) => (parseInt(prev || "0") + 10).toString())} className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-xs font-mono font-bold hover:bg-white/10 transition-colors">+10</button>
-                                        </div>
-
-                                        {/* Slider Visual */}
-                                        <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
-                                            <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 w-1/3" />
-                                        </div>
-
-                                        {/* Action Button */}
-                                        <button
-                                            onClick={handleExecuteTrade}
-                                            className={cn(
-                                                "w-full py-3 rounded-lg font-bold text-sm uppercase tracking-wider shadow-lg transition-transform active:scale-95 flex flex-col items-center justify-center gap-0.5",
-                                                getOutcomeColor(selectedOutcomeObj.label)
-                                            )}
-                                        >
-                                            <span>Buy {selectedOutcomeObj.label}</span>
-                                            <span className="text-[10px] opacity-70 font-mono">To win ${(parseFloat(amount || "0") / selectedOutcomeObj.price).toFixed(2)}</span>
-                                        </button>
-                                    </div>
-                                </>
-                            ) : (
-                                // ANIMATION STATE
-                                <div className="flex flex-col items-center justify-center h-full space-y-4">
-                                    {executionStep === "PROCESSING" && (
-                                        <>
-                                            <div className="w-8 h-8 border-2 border-white/20 border-t-accent rounded-full animate-spin" />
-                                            <div className="font-mono text-xs text-accent animate-pulse">
-                                                EXECUTING...
-                                            </div>
-                                        </>
-                                    )}
-
-                                    {executionStep === "SUCCESS" && (
-                                        <>
-                                            <div className="text-4xl">
-                                                ✅
-                                            </div>
-                                            <div className="text-center">
-                                                <div className="font-black italic text-2xl uppercase text-white">
-                                                    FILLED
-                                                </div>
-                                                <div className="font-mono text-xs text-gray-400 mt-1">
-                                                    {selectedOutcomeObj.label} // ${amount}
-                                                </div>
-                                            </div>
-                                        </>
-                                    )}
+                    {/* REGULAR CARD CONTENT */}
+                    <>
+                        {/* Header */}
+                        <div className="flex items-start justify-between mb-4 pointer-events-auto">
+                            <div className="flex flex-col gap-1">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-mono text-[10px] text-gray-500 group-hover:text-gray-400 uppercase tracking-widest transition-colors">
+                                        m{market.id.replace('m00', '')}
+                                    </span>
+                                    <span className="text-xs text-gray-600 group-hover:text-gray-500 transition-colors">{"//"}</span>
+                                    <span className="font-mono text-[10px] text-gray-500 group-hover:text-gray-400 uppercase transition-colors">
+                                        {market.traderName}
+                                    </span>
                                 </div>
-                            )}
-                        </div>
-                    ) : (
-                        // REGULAR CARD CONTENT
-                        <>
-                            {/* Header */}
-                            <div className="flex items-start justify-between mb-4 pointer-events-auto">
-                                <div className="flex flex-col gap-1">
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-mono text-[10px] text-gray-500 group-hover:text-gray-400 uppercase tracking-widest transition-colors">
-                                            m{market.id.replace('m00', '')}
-                                        </span>
-                                        <span className="text-xs text-gray-600 group-hover:text-gray-500 transition-colors">{"//"}</span>
-                                        <span className="font-mono text-[10px] text-gray-500 group-hover:text-gray-400 uppercase transition-colors">
-                                            {market.traderName}
-                                        </span>
-                                    </div>
-                                </div>
+                            </div>
+                            <div className="flex items-center gap-3">
                                 {market.isHot && (
                                     <div className="flex items-center gap-1.5 text-[10px] uppercase font-bold font-mono">
                                         <span className="w-1.5 h-1.5 bg-accent animate-pulse" />
@@ -286,21 +192,42 @@ export default function MarketCard({ market }: MarketCardProps) {
                                     </div>
                                 )}
                             </div>
+                        </div>
 
-                            {/* Main Content */}
-                            <div className="flex-grow mb-6 pointer-events-auto">
-                                <Link href={`/market/${market.id}`} className="block">
-                                    <h3 className="font-sans font-bold text-lg md:text-xl leading-tight uppercase text-white group-hover:text-accent transition-colors">
-                                        {market.question}
-                                    </h3>
-                                </Link>
-                            </div>
+                        {/* Main Content */}
+                        <div className="flex-grow mb-6 pointer-events-auto">
+                            <Link href={`/market/${market.id}`} className="block">
+                                <h3 className="font-sans font-bold text-lg md:text-xl leading-tight uppercase text-white group-hover:text-accent transition-colors">
+                                    {market.question}
+                                </h3>
+                            </Link>
+                        </div>
 
-                            {/* Footer Data */}
-                            <div className="space-y-4 pointer-events-auto">
+                        {/* Footer Data */}
+                        <div className="space-y-4 pointer-events-auto">
 
-                                {/* Interactive Outcomes */}
-                                {isBinary ? (
+                            {/* Interactive Outcomes */}
+                            {isBinary ? (
+                                <div className="space-y-3">
+                                    {/* Vote Distribution (Visual) */}
+                                    <div className="flex flex-col gap-1">
+                                        <div className="flex justify-between text-[10px] font-mono font-bold leading-none">
+                                            <span className="text-[#D4FF00]">{Math.floor(market.outcomes[0].price * 100)}% {market.outcomes[0].label}</span>
+                                            <span className="text-red-500">{market.outcomes[1].label} {Math.floor(market.outcomes[1].price * 100)}%</span>
+                                        </div>
+                                        <div className="flex w-full h-1.5 gap-0.5">
+                                            <div
+                                                style={{ width: `${market.outcomes[0].price * 100}%` }}
+                                                className="bg-[#D4FF00] h-full rounded-l-sm shadow-[0_0_8px_rgba(212,255,0,0.4)]"
+                                            />
+                                            <div
+                                                style={{ width: `${market.outcomes[1].price * 100}%` }}
+                                                className="bg-red-500 h-full rounded-r-sm shadow-[0_0_8px_rgba(239,68,68,0.4)]"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Buttons */}
                                     <div className="flex gap-2">
                                         <button
                                             onClick={(e) => handleQuickBet(e, market.outcomes[0].id)}
@@ -317,55 +244,160 @@ export default function MarketCard({ market }: MarketCardProps) {
                                             <span className="font-mono text-sm font-bold">{Math.floor(market.outcomes[1].price * 100)}¢</span>
                                         </button>
                                     </div>
-                                ) : (
-                                    <div className="flex flex-col gap-1.5 max-h-[85px] overflow-y-auto pr-2 no-scrollbar hover:scrollbar-thumb-white/20 scrollbar-thin scrollbar-track-transparent">
-                                        {market.outcomes.map((outcome, i) => (
-                                            <button
-                                                key={outcome.id || i}
-                                                onClick={(e) => handleQuickBet(e, outcome.id)}
-                                                className="flex justify-between items-center px-2 py-1.5 bg-white/5 border border-white/5 hover:bg-white hover:text-black transition-all text-left group/item"
-                                            >
-                                                <div className="text-[10px] font-mono text-gray-400 group-hover/item:text-black uppercase truncate max-w-[120px]">
-                                                    {outcome.label}
-                                                </div>
-                                                <div className="text-xs font-mono font-bold text-white group-hover/item:text-black">
-                                                    {Math.floor(outcome.price * 100)}¢
-                                                </div>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
+                                </div>
+                            ) : (
+                                <div className="flex flex-col gap-1.5 max-h-[85px] overflow-y-auto pr-2 no-scrollbar hover:scrollbar-thumb-white/20 scrollbar-thin scrollbar-track-transparent">
+                                    {market.outcomes.map((outcome, i) => (
+                                        <button
+                                            key={outcome.id || i}
+                                            onClick={(e) => handleQuickBet(e, outcome.id)}
+                                            className="flex justify-between items-center px-2 py-1.5 bg-white/5 border border-white/5 hover:bg-white hover:text-black transition-all text-left group/item"
+                                        >
+                                            <div className="text-[10px] font-mono text-gray-400 group-hover/item:text-black uppercase truncate max-w-[120px]">
+                                                {outcome.label}
+                                            </div>
+                                            <div className="text-xs font-mono font-bold text-white group-hover/item:text-black">
+                                                {Math.floor(outcome.price * 100)}¢
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
 
-                                {/* Meta & Verification */}
-                                <div className="flex items-end justify-between pt-2 transition-colors relative">
-                                    <div className="flex flex-col gap-1">
-                                        <div className="flex items-center gap-1.5 text-[10px] text-gray-400 group-hover:text-accent/80 transition-colors" title="Data Verified On-Chain">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-green-500/50 border border-green-500" />
-                                            <span className="font-mono tracking-wider text-[9px]">VERIFIED: HYPERLIQUID_DB</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 font-mono text-[10px] text-gray-600 group-hover:text-gray-500 transition-colors">
-                                            <span>VOL: {market.volume}</span>
-                                            <span className="text-gray-800">•</span>
-                                            <span className={cn(
-                                                "font-bold",
-                                                market.change.startsWith("+") ? "text-accent" : "text-red-500"
-                                            )}>
-                                                {market.change}
-                                            </span>
-                                        </div>
+                            {/* Meta & Verification */}
+                            <div className="flex items-end justify-between pt-2 transition-colors relative">
+                                <div className="flex flex-col gap-1">
+                                    <div className="flex items-center gap-1.5 text-[10px] text-gray-400 group-hover:text-accent/80 transition-colors" title="Data Verified On-Chain">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-green-500/50 border border-green-500" />
+                                        <span className="font-mono tracking-wider text-[9px]">VERIFIED: HYPERLIQUID_DB</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 font-mono text-[10px] text-gray-600 group-hover:text-gray-500 transition-colors">
+                                        <span>VOL: {market.volume}</span>
+                                        <span className="text-gray-800">•</span>
+                                        <span className={cn(
+                                            "font-bold",
+                                            market.change.startsWith("+") ? "text-accent" : "text-red-500"
+                                        )}>
+                                            {market.change}
+                                        </span>
                                     </div>
                                 </div>
-
-                                {/* Industrial "Gigs" (Decorations) */}
-                                <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-white/50 group-hover:border-accent transition-colors" />
-                                <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-white/50 group-hover:border-accent transition-colors" />
-
                             </div>
-                        </>
-                    )}
+
+                            {/* Watchlist Button (Absolute Bottom Right) */}
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    if (isWatched) removeFromWatchlist(market.id);
+                                    else addToWatchlist(market.id);
+                                }}
+                                className="absolute bottom-4 right-4 z-30 text-gray-500 hover:text-accent transition-colors"
+                            >
+                                <Star className={cn("w-5 h-5", isWatched && "fill-accent text-accent")} />
+                            </button>
+
+                            {/* Industrial "Gigs" (Decorations) */}
+                            <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-white/50 group-hover:border-accent transition-colors" />
+                            <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-white/50 group-hover:border-accent transition-colors" />
+
+                        </div>
+                    </>
                 </div>
+
+                {/* QUICK BET INTERFACE */}
+                {expandedOutcome && selectedOutcomeObj && (
+                    <div className="absolute inset-0 z-50 bg-black p-6 animate-in fade-in zoom-in-95 duration-200 flex flex-col justify-between pointer-events-auto">
+                        {executionStep === "IDLE" ? (
+                            <>
+                                {/* Header */}
+                                <div className="flex items-start justify-between mb-2">
+                                    <div className="flex flex-col">
+                                        <div className="text-[10px] text-gray-400 font-mono uppercase tracking-widest mb-1">
+                                            Placing Order
+                                        </div>
+                                        <h3 className="font-sans font-bold text-lg leading-tight text-white line-clamp-2">
+                                            {market.question}
+                                        </h3>
+                                    </div>
+                                    <button
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            setExpandedOutcome(null);
+                                        }}
+                                        className="text-gray-500 hover:text-white transition-colors"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+
+                                {/* Controls */}
+                                <div className="space-y-4">
+                                    {/* Amount Input Row */}
+                                    <div className="flex gap-2">
+                                        <div className="flex-1 relative">
+                                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-mono">$</div>
+                                            <input
+                                                type="number"
+                                                value={amount}
+                                                onChange={(e) => setAmount(e.target.value)}
+                                                className="w-full bg-white/5 border border-white/20 rounded-lg py-2 pl-6 pr-2 text-white font-mono font-bold focus:outline-none focus:border-accent transition-colors"
+                                            />
+                                        </div>
+                                        <button onClick={() => setAmount((prev) => (parseInt(prev || "0") + 1).toString())} className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-xs font-mono font-bold hover:bg-white/10 transition-colors">+1</button>
+                                        <button onClick={() => setAmount((prev) => (parseInt(prev || "0") + 10).toString())} className="px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-xs font-mono font-bold hover:bg-white/10 transition-colors">+10</button>
+                                    </div>
+
+                                    {/* Slider Visual */}
+                                    <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                                        <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 w-1/3" />
+                                    </div>
+
+                                    {/* Action Button */}
+                                    <button
+                                        onClick={handleExecuteTrade}
+                                        className={cn(
+                                            "w-full py-3 rounded-lg font-bold text-sm uppercase tracking-wider shadow-lg transition-transform active:scale-95 flex flex-col items-center justify-center gap-0.5",
+                                            getOutcomeColor(selectedOutcomeObj.label)
+                                        )}
+                                    >
+                                        <span>Buy {selectedOutcomeObj.label}</span>
+                                        <span className="text-[10px] opacity-70 font-mono">To win ${(parseFloat(amount || "0") / selectedOutcomeObj.price).toFixed(2)}</span>
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            // ANIMATION STATE
+                            <div className="flex flex-col items-center justify-center h-full space-y-4">
+                                {executionStep === "PROCESSING" && (
+                                    <>
+                                        <div className="w-8 h-8 border-2 border-white/20 border-t-accent rounded-full animate-spin" />
+                                        <div className="font-mono text-xs text-accent animate-pulse">
+                                            EXECUTING...
+                                        </div>
+                                    </>
+                                )}
+
+                                {executionStep === "SUCCESS" && (
+                                    <>
+                                        <div className="text-4xl">
+                                            ✅
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="font-black italic text-2xl uppercase text-white">
+                                                FILLED
+                                            </div>
+                                            <div className="font-mono text-xs text-gray-400 mt-1">
+                                                {selectedOutcomeObj.label} // ${amount}
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </div >
     );
 }
-

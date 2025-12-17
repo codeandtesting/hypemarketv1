@@ -18,6 +18,8 @@ export const metadata: Metadata = {
   description: "Graphic Brutalist Trader Betting",
 };
 
+import { WatchlistProvider } from "@/lib/watchlistContext";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,8 +30,10 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased bg-black text-white selection:bg-[#D4FF00] selection:text-black`}
       >
-        <Navbar />
-        {children}
+        <WatchlistProvider>
+          <Navbar />
+          {children}
+        </WatchlistProvider>
       </body>
     </html>
   );
