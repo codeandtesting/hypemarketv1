@@ -25,7 +25,7 @@ export default function Navbar() {
                 <div className="flex items-center gap-3 md:gap-6">
                     <nav className="hidden md:flex gap-6 font-mono text-[10px] tracking-widest text-gray-500">
                         <Link href="/portfolio" className="hover:text-white uppercase transition-colors">
-                            PORTFOLIO
+                            PORTFOLLO
                         </Link>
                         <Link href="/" className="hover:text-white uppercase transition-colors">
                             MARKETS
