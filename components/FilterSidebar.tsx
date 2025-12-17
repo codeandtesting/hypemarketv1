@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Filter, Users, Coins, Activity, ArrowUpDown } from "lucide-react";
+import { Filter, Users, Coins, Activity, ArrowUpDown, PanelLeftClose } from "lucide-react";
 
 export interface FilterState {
     traderClass: string;
@@ -13,9 +13,10 @@ export interface FilterState {
 interface FilterSidebarProps {
     filters: FilterState;
     setFilters: (update: Partial<FilterState>) => void;
+    onToggle?: () => void;
 }
 
-
+// ... (FilterSection helper remains the same) ...
 
 // Helper for rendering a filter section
 const FilterSection = ({
@@ -57,13 +58,24 @@ const FilterSection = ({
     </div>
 );
 
-export default function FilterSidebar({ filters, setFilters }: FilterSidebarProps) {
+export default function FilterSidebar({ filters, setFilters, onToggle }: FilterSidebarProps) {
 
     return (
-        <aside className="w-full h-full bg-black border-r border-white/40 p-6 flex flex-col">
-            <div className="mb-6 flex items-center gap-2 pb-6 border-b border-white/40">
-                <Filter className="w-4 h-4 text-accent" />
-                <span className="font-mono text-xs font-bold text-white tracking-widest">SYSTEM_FILTERS</span>
+        <aside className="w-full h-full bg-black md:border-r border-white/40 p-6 flex flex-col">
+            <div className="mb-6 flex items-center justify-between pb-6 border-b border-white/40">
+                <div className="flex items-center gap-2">
+                    <Filter className="w-4 h-4 text-accent" />
+                    <span className="font-mono text-xs font-bold text-white tracking-widest">SYSTEM_FILTERS</span>
+                </div>
+                {onToggle && (
+                    <button
+                        onClick={onToggle}
+                        className="text-gray-500 hover:text-white transition-colors"
+                        title="Collapse Sidebar"
+                    >
+                        <PanelLeftClose className="w-4 h-4" />
+                    </button>
+                )}
             </div>
 
             <div className="flex-grow overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">

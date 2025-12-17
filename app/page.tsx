@@ -5,7 +5,7 @@ import MarketCard from "@/components/MarketCard";
 import FeaturedEvent from "@/components/FeaturedEvent";
 import FilterSidebar, { FilterState } from "@/components/FilterSidebar";
 import { MOCK_MARKETS, Market } from "@/lib/mockData";
-import { Filter, X } from "lucide-react";
+import { Filter, X, PanelLeftOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function Home() {
@@ -17,6 +17,7 @@ export default function Home() {
   });
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // Lock body scroll when filters are open
   useEffect(() => {
@@ -74,18 +75,46 @@ export default function Home() {
       </div>
 
       {/* Layout Grid */}
-      <div className="mx-auto w-full max-w-[1920px] flex-grow grid grid-cols-1 md:grid-cols-[200px_1fr] lg:grid-cols-[260px_1fr] xl:grid-cols-[300px_1fr] border-t border-white/40">
+      <div
+        className={cn(
+          "mx-auto w-full max-w-[1920px] flex-grow grid transition-all duration-300 ease-in-out",
+          "grid-cols-1",
+          isSidebarOpen
+            ? "md:grid-cols-[200px_1fr] lg:grid-cols-[260px_1fr] xl:grid-cols-[300px_1fr]"
+            : "md:grid-cols-[32px_1fr]"
+        )}
+      >
 
         {/* Control Sidebar (Desktop) */}
-        <div className="hidden md:block sticky top-0 h-[calc(100vh-80px)] overflow-hidden">
-          <FilterSidebar filters={filters} setFilters={(update) => setFilters(prev => ({ ...prev, ...update }))} />
+        <div className="hidden md:block sticky top-0 h-[calc(100vh-80px)] overflow-hidden border-r border-white/40 bg-black z-20 transition-all duration-300">
+          {isSidebarOpen ? (
+            <FilterSidebar
+              filters={filters}
+              setFilters={(update) => setFilters(prev => ({ ...prev, ...update }))}
+              onToggle={() => setIsSidebarOpen(false)}
+            />
+          ) : (
+            <div
+              onClick={() => setIsSidebarOpen(true)}
+              className="w-full h-full relative cursor-pointer hover:bg-white/5 transition-colors group flex flex-col items-center pt-6"
+              title="Expand Filters"
+            >
+              <PanelLeftOpen className="w-4 h-4 text-gray-600 group-hover:text-accent transition-colors" />
+
+              {/* Vertical Text Label */}
+              <div className="absolute top-24 left-1/2 -translate-x-1/2 rotate-180 [writing-mode:vertical-rl] text-[9px] font-mono font-bold tracking-[0.2em] text-gray-700 group-hover:text-white transition-colors whitespace-nowrap uppercase">
+                EXPAND
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Main Content */}
         <div className="flex flex-col min-h-screen border-l border-white/40">
 
           {/* Header Section */}
-          <div className="border-b border-white/40 px-6 py-10 md:px-10 lg:px-12 bg-black/50 backdrop-blur-sm sticky top-0 md:static z-30 relative overflow-hidden">
+          {/* Header Section (Status Line Only) */}
+          <div className="border-b border-white/40 px-6 py-4 md:px-10 lg:px-12 bg-black/50 backdrop-blur-sm sticky top-0 md:static z-30 relative overflow-hidden">
             {/* Decorative Gigs */}
             <div className="absolute top-0 right-10 w-px h-4 bg-white/50" />
             <div className="absolute top-0 right-12 w-px h-2 bg-white/50" />
@@ -93,24 +122,20 @@ export default function Home() {
               SYS.VER: 4.2.0 // NODE: HYPER_01
             </div>
 
-            <div className="flex justify-between items-end mb-2 relative">
-              <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="inline-block text-[10px] font-mono bg-accent text-black px-1.5 py-0.5 tracking-wider font-bold">
+            {/* Meta Row */}
+            <div className="flex justify-between items-center h-full">
+              <div className="flex items-center gap-3">
+                <div className="inline-block text-[10px] font-mono bg-accent text-black px-1.5 py-0.5 tracking-wider font-bold">
                                     /// LIVE_FEED_V4.2
-                  </div>
-                  <div className="h-px w-8 bg-accent/50 hidden sm:block" />
-                  <div className="text-[9px] font-mono text-accent/70 hidden sm:block">
-                    EST_LATENCY: 12ms
-                  </div>
                 </div>
-                <h1 className="text-3xl md:text-5xl font-light leading-tight">
-                  Tracking <span className="font-black text-highlight">social liquidity</span>.
-                </h1>
+                <div className="h-px w-8 bg-accent/50 hidden sm:block" />
+                <div className="text-[9px] font-mono text-accent/70 hidden sm:block">
+                  EST_LATENCY: 12ms
+                </div>
               </div>
 
               {/* Stats */}
-              <div className="hidden lg:flex gap-8 font-mono text-xs text-gray-500">
+              <div className="hidden lg:flex gap-8 font-mono text-xs text-gray-500 text-right">
                 <div>
                   <span className="text-gray-600 block text-[9px] uppercase tracking-wider mb-1">24h Volume</span>
                   <span className="text-white text-lg font-bold block">$42.1M</span>

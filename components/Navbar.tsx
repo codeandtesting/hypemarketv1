@@ -13,9 +13,14 @@ export default function Navbar() {
 
     return (
         <header className="sticky top-0 z-50 w-full bg-black border-b border-white/40">
-            <div className="flex items-center justify-between px-6 py-5 lg:px-12">
-                <Link href="/" className="text-2xl md:text-5xl font-black tracking-tighter text-white hover:text-accent uppercase leading-none transition-colors">
-                    HYPEMARKET
+            <div className="flex items-center justify-between px-6 py-3 lg:px-12">
+                <Link href="/" className="flex flex-col gap-0.5 group">
+                    <span className="text-2xl font-black tracking-tight text-white group-hover:text-accent uppercase leading-none transition-colors">
+                        HYPEMARKET
+                    </span>
+                    <span className="font-mono text-[9px] text-gray-500 tracking-wider group-hover:text-white transition-colors">
+                        tracking <span className="text-accent">social liquidity</span>.
+                    </span>
                 </Link>
                 <div className="flex items-center gap-3 md:gap-6">
                     <nav className="hidden md:flex gap-6 font-mono text-[10px] tracking-widest text-gray-500">

@@ -1,11 +1,18 @@
+"use client";
+
 import { useState } from "react";
 import { Market } from "@/lib/mockData";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { TrendingUp, X, Star } from "lucide-react";
+import {
+    TrendingUp, TrendingDown, X, Star, Bitcoin, Bot, BarChart3, Activity, CircleDollarSign, Landmark,
+    AlertTriangle, DollarSign, Flame, Crosshair, Fish, Timer, Rocket, ArrowUpRight, ArrowDownRight,
+    Building2, Hexagon, Sun, Scale, Clock, CalendarDays
+} from "lucide-react";
 import { useWatchlist } from "@/lib/watchlistContext";
+import SignalAvatar from "./SignalAvatar";
 
-interface MarketCardProps {
+interface MarketCardVariantProps {
     market: Market;
 }
 
@@ -19,7 +26,7 @@ function mulberry32(a: number) {
     }
 }
 
-export default function MarketCard({ market }: MarketCardProps) {
+export default function MarketCardVariant({ market }: MarketCardVariantProps) {
     const { isInWatchlist, addToWatchlist, removeFromWatchlist } = useWatchlist();
     const isWatched = isInWatchlist(market.id);
 
@@ -30,6 +37,56 @@ export default function MarketCard({ market }: MarketCardProps) {
     const [amount, setAmount] = useState("10");
     const [expandedOutcome, setExpandedOutcome] = useState<string | null>(null);
     const [executionStep, setExecutionStep] = useState<"IDLE" | "PROCESSING" | "SUCCESS">("IDLE");
+
+    // Select Icon based on Market Data - Comprehensive Icon System
+    const getMarketIcon = () => {
+        // Priority 1: Event Type (What kind of bet is this?)
+        if (market.eventType === 'LIQ_RISK') return AlertTriangle; // Liquidation Risk -> Warning
+        if (market.eventType === 'ROI') return TrendingUp;         // Return metrics
+        if (market.eventType === 'PNL') return DollarSign;         // Profit/Loss focused
+
+        // Priority 2: Asset Type (What is being traded?)
+        if (market.assetType === 'BTC_ETH') return Bitcoin;        // Major cryptos
+        if (market.assetType === 'MEMES') return Flame;            // Meme coins (hot/viral)
+        if (market.assetType === 'PERPS') return Crosshair;        // Perpetuals/Derivatives
+
+        // Priority 3: Trader Category (Who is trading?)
+        if (market.category === 'WHALES') return Fish;             // Large holders
+        if (market.category === 'ALGO_BOTS') return Bot;           // Algorithmic trading
+        if (market.category === 'SCALPERS') return Timer;          // Fast trades
+
+        // Priority 4: Keyword Fallbacks (Parse the question)
+        const q = market.question.toUpperCase();
+
+        // Direction/Movement
+        if (q.includes('PUMP') || q.includes('MOON')) return Rocket;
+        if (q.includes('DUMP') || q.includes('CRASH')) return TrendingDown;
+        if (q.includes('LONG')) return ArrowUpRight;
+        if (q.includes('SHORT')) return ArrowDownRight;
+
+        // Macro/External
+        if (q.includes('FED') || q.includes('RATE') || q.includes('CPI')) return Landmark;
+        if (q.includes('ETF')) return Building2;
+
+        // Specific Assets
+        if (q.includes('BTC') || q.includes('BITCOIN')) return Bitcoin;
+        if (q.includes('ETH') || q.includes('ETHEREUM')) return Hexagon;
+        if (q.includes('SOL') || q.includes('SOLANA')) return Sun;
+
+        // Metrics
+        if (q.includes('PRICE')) return CircleDollarSign;
+        if (q.includes('VOLUME') || q.includes('VOL')) return BarChart3;
+        if (q.includes('RATIO')) return Scale;
+
+        // Time-based
+        if (q.includes('24H') || q.includes('HOUR')) return Clock;
+        if (q.includes('EOD') || q.includes('END OF DAY')) return CalendarDays;
+
+        // Default: Generic activity pulse
+        return Activity;
+    };
+
+    const MarketIcon = getMarketIcon();
 
     // 1. Randomize Grid Density (4x4, 8x8, or 12x12)
     const gridDensity = [4, 8, 12][Math.floor(rand() * 3)];
@@ -131,7 +188,7 @@ export default function MarketCard({ market }: MarketCardProps) {
 
             <div
                 className={cn(
-                    "relative flex h-full flex-col justify-between overflow-hidden bg-[#09090b] p-6 transition-all duration-200 border border-white/25 shadow-[0_0_20px_rgba(255,255,255,0.03)]",
+                    "relative flex h-full flex-col justify-between overflow-hidden bg-[#0c0c0e] p-5 transition-all duration-200 border border-white/30 shadow-[0_0_20px_rgba(255,255,255,0.03)]",
                     "hover:border-accent hover:bg-accent/5",
                     isWatched && "border-accent/40 bg-accent/5"
                 )}
@@ -140,18 +197,18 @@ export default function MarketCard({ market }: MarketCardProps) {
                 <div className="absolute inset-0 z-0 opacity-50 pointer-events-none">
                     <svg width="100%" height="100%" preserveAspectRatio="none">
                         <defs>
-                            <pattern id={`grid-${market.id}`} width="8" height="8" patternUnits="userSpaceOnUse">
+                            <pattern id={`grid-${market.id}-v`} width="8" height="8" patternUnits="userSpaceOnUse">
                                 <path d="M 8 0 L 0 0 0 8" fill="none" stroke="white" strokeWidth="0.5" opacity="0.5" />
                             </pattern>
-                            <pattern id={`hatch-${market.id}`} width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                            <pattern id={`hatch-${market.id}-v`} width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
                                 <rect width="2" height="4" transform="translate(0,0)" fill="white" opacity="0.3"></rect>
                             </pattern>
-                            <filter id='noiseFilter'>
+                            <filter id={`noiseFilter-${market.id}-v`}>
                                 <feTurbulence type='fractalNoise' baseFrequency='0.6' stitchTiles='stitch' />
                                 <feColorMatrix type='matrix' values='1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.1 0' />
                             </filter>
                         </defs>
-                        <rect width='100%' height='100%' filter='url(#noiseFilter)' opacity='0.4' />
+                        <rect width='100%' height='100%' filter={`url(#noiseFilter-${market.id}-v)`} opacity='0.4' />
                         {shapes.map((block, i) => (
                             <rect
                                 key={i}
@@ -159,7 +216,7 @@ export default function MarketCard({ market }: MarketCardProps) {
                                 y={`${block.top}%`}
                                 width={`${block.width}%`}
                                 height={`${block.height}%`}
-                                fill={block.hasPattern ? (i % 2 === 0 ? `url(#grid-${market.id})` : `url(#hatch-${market.id})`) : block.fill}
+                                fill={block.hasPattern ? (i % 2 === 0 ? `url(#grid-${market.id}-v)` : `url(#hatch-${market.id}-v)`) : block.fill}
                                 opacity={block.opacity}
                             />
                         ))}
@@ -170,142 +227,133 @@ export default function MarketCard({ market }: MarketCardProps) {
                 <div className="relative z-10 flex flex-col h-full justify-between pointer-events-none w-full">
 
                     {/* REGULAR CARD CONTENT */}
-                    <>
-                        {/* Header */}
-                        <div className="flex items-start justify-between mb-4 pointer-events-auto">
-                            <div className="flex flex-col gap-1">
-                                <div className="flex items-center gap-2">
-                                    <span className="font-mono text-[10px] text-gray-500 group-hover:text-gray-400 uppercase tracking-widest transition-colors">
-                                        m{market.id.replace('m00', '')}
-                                    </span>
-                                    <span className="text-xs text-gray-600 group-hover:text-gray-500 transition-colors">{"//"}</span>
-                                    <span className="font-mono text-[10px] text-gray-500 group-hover:text-gray-400 uppercase transition-colors">
-                                        {market.traderName}
-                                    </span>
+                    <div className="flex items-start gap-4 mb-4 pointer-events-auto">
+                        <div className="flex-shrink-0">
+                            <SignalAvatar icon={MarketIcon} alt={market.traderName} size={42} />
+                        </div>
+
+                        <div className="flex flex-col gap-0.5 w-full min-w-0">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-[10px] font-mono tracking-widest text-gray-400">
+                                    <span className="truncate">{market.traderName.toUpperCase()}</span>
+                                    <span className="text-gray-600">{"//"}</span>
+                                    <span>m{market.id.replace('m00', '')}</span>
                                 </div>
-                            </div>
-                            <div className="flex items-center gap-3">
+
+                                {/* Live Indicator */}
                                 {market.isHot && (
-                                    <div className="flex items-center gap-1.5 text-[10px] uppercase font-bold font-mono">
+                                    <div className="flex items-center gap-1.5 text-[10px] uppercase font-bold font-mono flex-shrink-0">
                                         <span className="w-1.5 h-1.5 bg-accent animate-pulse" />
                                         <span className="text-accent">LIVE</span>
                                     </div>
                                 )}
                             </div>
-                        </div>
 
-                        {/* Main Content */}
-                        <div className="flex-grow mb-6 pointer-events-auto">
-                            <Link href={`/market/${market.id}`} className="block">
-                                <h3 className="font-sans font-bold text-lg md:text-xl leading-tight uppercase text-white group-hover:text-accent transition-colors">
+                            <Link href={`/market/${market.id}`} className="block mt-1">
+                                <h3 className="font-mono font-medium text-base leading-[1.35] lowercase text-white group-hover:text-accent transition-colors line-clamp-3 tracking-tighter">
                                     {market.question}
                                 </h3>
                             </Link>
                         </div>
+                    </div>
 
-                        {/* Footer Data */}
-                        <div className="space-y-4 pointer-events-auto">
+                    {/* Footer Data */}
+                    <div className="space-y-4 pointer-events-auto mt-auto">
 
-                            {/* Interactive Outcomes */}
-                            {isBinary ? (
-                                <div className="space-y-3">
-                                    {/* Vote Distribution (Visual) */}
-                                    <div className="flex flex-col gap-1">
-                                        <div className="flex justify-between text-[10px] font-mono font-bold leading-none">
-                                            <span className="text-[#D4FF00]">{Math.floor(market.outcomes[0].price * 100)}% {market.outcomes[0].label}</span>
-                                            <span className="text-red-500">{market.outcomes[1].label} {Math.floor(market.outcomes[1].price * 100)}%</span>
-                                        </div>
-                                        <div className="flex w-full h-1.5 gap-0.5">
-                                            <div
-                                                style={{ width: `${market.outcomes[0].price * 100}%` }}
-                                                className="bg-[#D4FF00] h-full rounded-l-sm shadow-[0_0_8px_rgba(212,255,0,0.4)]"
-                                            />
-                                            <div
-                                                style={{ width: `${market.outcomes[1].price * 100}%` }}
-                                                className="bg-red-500 h-full rounded-r-sm shadow-[0_0_8px_rgba(239,68,68,0.4)]"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* Buttons */}
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={(e) => handleQuickBet(e, market.outcomes[0].id)}
-                                            className="flex-1 flex justify-between items-center px-3 py-2 bg-white/5 border border-white/10 hover:bg-[#D4FF00] hover:border-[#D4FF00] hover:text-black group/btn transition-all group-hover:translate-y-0 translate-y-0"
-                                        >
-                                            <span className="font-mono text-xs font-bold uppercase transition-colors text-green-500 group-hover/btn:text-black">{market.outcomes[0].label}</span>
-                                            <span className="font-mono text-sm font-bold">{Math.floor(market.outcomes[0].price * 100)}¢</span>
-                                        </button>
-                                        <button
-                                            onClick={(e) => handleQuickBet(e, market.outcomes[1].id)}
-                                            className="flex-1 flex justify-between items-center px-3 py-2 bg-white/5 border border-white/10 hover:bg-red-500 hover:border-red-500 hover:text-black group/btn transition-all"
-                                        >
-                                            <span className="font-mono text-xs font-bold uppercase transition-colors text-red-500 group-hover/btn:text-black">{market.outcomes[1].label}</span>
-                                            <span className="font-mono text-sm font-bold">{Math.floor(market.outcomes[1].price * 100)}¢</span>
-                                        </button>
-                                    </div>
+                        {/* Interactive Outcomes */}
+                        {isBinary ? (
+                            <div className="space-y-3">
+                                {/* Vote Direction Bar (Compact) */}
+                                <div className="flex w-full h-1 bg-white/10 gap-[1px]">
+                                    <div
+                                        style={{ width: `${market.outcomes[0].price * 100}%` }}
+                                        className={cn("h-full transition-all duration-500", getOutcomeColor(market.outcomes[0].label).includes('D4FF00') ? "bg-[#D4FF00]" : "bg-white")}
+                                    />
+                                    <div
+                                        style={{ width: `${market.outcomes[1].price * 100}%` }}
+                                        className="h-full bg-red-500 transition-all duration-500"
+                                    />
                                 </div>
-                            ) : (
-                                <div className="flex flex-col gap-1.5 max-h-[85px] overflow-y-auto pr-2 no-scrollbar hover:scrollbar-thumb-white/20 scrollbar-thin scrollbar-track-transparent">
-                                    {market.outcomes.map((outcome, i) => (
-                                        <button
-                                            key={outcome.id || i}
-                                            onClick={(e) => handleQuickBet(e, outcome.id)}
-                                            className="flex justify-between items-center px-2 py-1.5 bg-white/5 border border-white/5 hover:bg-white hover:text-black transition-all text-left group/item"
-                                        >
-                                            <div className="text-[10px] font-mono text-gray-400 group-hover/item:text-black uppercase truncate max-w-[120px]">
-                                                {outcome.label}
-                                            </div>
-                                            <div className="text-xs font-mono font-bold text-white group-hover/item:text-black">
-                                                {Math.floor(outcome.price * 100)}¢
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
 
-                            {/* Meta & Verification */}
-                            <div className="flex items-end justify-between pt-2 transition-colors relative">
-                                <div className="flex flex-col gap-1">
-                                    <div className="flex items-center gap-1.5 text-[10px] text-gray-400 group-hover:text-accent/80 transition-colors" title="Data Verified On-Chain">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-green-500/50 border border-green-500" />
-                                        <span className="font-mono tracking-wider text-[9px]">VERIFIED: HYPERLIQUID_DB</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 font-mono text-[10px] text-gray-600 group-hover:text-gray-500 transition-colors">
-                                        <span>VOL: {market.volume}</span>
-                                        <span className="text-gray-800">•</span>
-                                        <span className={cn(
-                                            "font-bold",
-                                            market.change.startsWith("+") ? "text-accent" : "text-red-500"
-                                        )}>
-                                            {market.change}
-                                        </span>
-                                    </div>
+                                {/* Buttons */}
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={(e) => handleQuickBet(e, market.outcomes[0].id)}
+                                        className="flex-1 flex justify-between items-center px-3 py-2 bg-white/5 border border-white/10 hover:bg-[#D4FF00] hover:border-[#D4FF00] hover:text-black group/btn transition-all group-hover:translate-y-0 translate-y-0"
+                                    >
+                                        <span className="font-mono text-xs font-bold uppercase transition-colors text-green-500 group-hover/btn:text-black">{market.outcomes[0].label}</span>
+                                        <span className="font-mono text-sm font-bold">{Math.floor(market.outcomes[0].price * 100)}¢</span>
+                                    </button>
+                                    <button
+                                        onClick={(e) => handleQuickBet(e, market.outcomes[1].id)}
+                                        className="flex-1 flex justify-between items-center px-3 py-2 bg-white/5 border border-white/10 hover:bg-red-500 hover:border-red-500 hover:text-black group/btn transition-all"
+                                    >
+                                        <span className="font-mono text-xs font-bold uppercase transition-colors text-red-500 group-hover/btn:text-black">{market.outcomes[1].label}</span>
+                                        <span className="font-mono text-sm font-bold">{Math.floor(market.outcomes[1].price * 100)}¢</span>
+                                    </button>
                                 </div>
                             </div>
+                        ) : (
+                            <div className="flex flex-col gap-1.5 max-h-[85px] overflow-y-auto pr-2 no-scrollbar hover:scrollbar-thumb-white/20 scrollbar-thin scrollbar-track-transparent">
+                                {market.outcomes.map((outcome, i) => (
+                                    <button
+                                        key={outcome.id || i}
+                                        onClick={(e) => handleQuickBet(e, outcome.id)}
+                                        className="flex justify-between items-center px-2 py-1.5 bg-white/5 border border-white/5 hover:bg-white hover:text-black transition-all text-left group/item"
+                                    >
+                                        <div className="text-[10px] font-mono text-gray-400 group-hover/item:text-black uppercase truncate max-w-[120px]">
+                                            {outcome.label}
+                                        </div>
+                                        <div className="text-xs font-mono font-bold text-white group-hover/item:text-black">
+                                            {Math.floor(outcome.price * 100)}¢
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
 
-                            {/* Watchlist Button (Absolute Bottom Right) */}
-                            <button
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    if (isWatched) removeFromWatchlist(market.id);
-                                    else addToWatchlist(market.id);
-                                }}
-                                className="absolute bottom-4 right-4 z-30 text-gray-500 hover:text-accent transition-colors"
-                            >
-                                <Star className={cn("w-5 h-5", isWatched && "fill-accent text-accent")} />
-                            </button>
-
-                            {/* Industrial "Gigs" (Decorations) */}
-                            <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-white/70 group-hover:border-accent transition-colors" />
-                            <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-white/70 group-hover:border-accent transition-colors" />
-
+                        {/* Meta & Verification */}
+                        <div className="flex items-end justify-between pt-2 transition-colors relative">
+                            <div className="flex flex-col gap-1">
+                                <div className="flex items-center gap-1.5 text-[10px] text-gray-400 group-hover:text-accent/80 transition-colors" title="Data Verified On-Chain">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-green-500/50 border border-green-500" />
+                                    <span className="font-mono tracking-wider text-[9px]">VERIFIED: HYPERLIQUID_DB</span>
+                                </div>
+                                <div className="flex items-center gap-2 font-mono text-[10px] text-gray-600 group-hover:text-gray-500 transition-colors">
+                                    <span>VOL: {market.volume}</span>
+                                    <span className="text-gray-800">•</span>
+                                    <span className={cn(
+                                        "font-bold",
+                                        market.change.startsWith("+") ? "text-accent" : "text-red-500"
+                                    )}>
+                                        {market.change}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                    </>
+
+                        {/* Watchlist Button (Custom Position for Variant) */}
+                        <button
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                if (isWatched) removeFromWatchlist(market.id);
+                                else addToWatchlist(market.id);
+                            }}
+                            className="absolute bottom-4 right-4 z-30 text-gray-500 hover:text-accent transition-colors"
+                        >
+                            <Star className={cn("w-5 h-5", isWatched && "fill-accent text-accent")} />
+                        </button>
+
+                        {/* Industrial "Gigs" (Decorations) */}
+                        <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-white/70 group-hover:border-accent transition-colors" />
+                        <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-white/70 group-hover:border-accent transition-colors" />
+
+                    </div>
+
                 </div>
 
-                {/* QUICK BET INTERFACE */}
+                {/* QUICK BET INTERFACE (Same as Original) */}
                 {expandedOutcome && selectedOutcomeObj && (
                     <div className="absolute inset-0 z-50 bg-black p-6 animate-in fade-in zoom-in-95 duration-200 flex flex-col justify-between pointer-events-auto">
                         {executionStep === "IDLE" ? (
@@ -398,6 +446,6 @@ export default function MarketCard({ market }: MarketCardProps) {
                     </div>
                 )}
             </div>
-        </div >
+        </div>
     );
 }
