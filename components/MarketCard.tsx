@@ -131,9 +131,9 @@ export default function MarketCard({ market }: MarketCardProps) {
 
             <div
                 className={cn(
-                    "relative flex h-full flex-col justify-between overflow-hidden bg-[#09090b] p-6 transition-all duration-200 border border-white/25 shadow-[0_0_20px_rgba(255,255,255,0.03)]",
-                    "hover:border-accent hover:bg-accent/5",
-                    isWatched && "border-accent/40 bg-accent/5"
+                    "relative flex h-full flex-col justify-between overflow-hidden bg-[#09090b] p-6 transition-all duration-200 border border-white/40 shadow-[0_0_25px_rgba(255,255,255,0.05)]",
+                    "hover:border-white hover:bg-white/5",
+                    isWatched && "border-accent/50 bg-accent/5"
                 )}
             >
                 {/* Generative Background Pattern */}
@@ -298,8 +298,8 @@ export default function MarketCard({ market }: MarketCardProps) {
                             </button>
 
                             {/* Industrial "Gigs" (Decorations) */}
-                            <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-white/70 group-hover:border-accent transition-colors" />
-                            <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-white/70 group-hover:border-accent transition-colors" />
+                            <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-white/80 group-hover:border-white transition-colors" />
+                            <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-white/80 group-hover:border-white transition-colors" />
 
                         </div>
                     </>

@@ -118,9 +118,6 @@ export default function Home() {
             {/* Decorative Gigs */}
             <div className="absolute top-0 right-10 w-px h-4 bg-white/50" />
             <div className="absolute top-0 right-12 w-px h-2 bg-white/50" />
-            <div className="absolute bottom-4 right-6 text-[9px] font-mono text-white/20 hidden md:block">
-              SYS.VER: 4.2.0 // NODE: HYPER_01
-            </div>
 
             {/* Meta Row */}
             <div className="flex justify-between items-center h-full">
